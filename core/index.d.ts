@@ -1214,6 +1214,7 @@ export interface BaseCompletionOptions {
   toolChoice?: ToolChoice;
   reasoning?: boolean;
   reasoningBudgetTokens?: number;
+  reasoningEffort?: "minimal" | "low" | "medium" | "high" | "max";
   promptCaching?: boolean;
 }
 

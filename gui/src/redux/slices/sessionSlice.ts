@@ -219,6 +219,7 @@ type SessionState = {
   };
   newestToolbarPreviewForInput: Record<string, string>;
   hasReasoningEnabled?: boolean;
+  reasoningEffort?: "minimal" | "low" | "medium" | "high" | "max";
   isPruned?: boolean;
   contextPercentage?: number;
   inlineErrorMessage?: InlineErrorMessageType;
@@ -966,6 +967,12 @@ export const sessionSlice = createSlice({
     setHasReasoningEnabled: (state, action: PayloadAction<boolean>) => {
       state.hasReasoningEnabled = action.payload;
     },
+    setReasoningEffort: (
+      state,
+      action: PayloadAction<"minimal" | "low" | "medium" | "high" | "max">,
+    ) => {
+      state.reasoningEffort = action.payload;
+    },
     setNewestToolbarPreviewForInput: (
       state,
       {
@@ -1086,6 +1093,7 @@ export const {
   setNewestToolbarPreviewForInput,
   setIsInEdit,
   setHasReasoningEnabled,
+  setReasoningEffort,
   setInlineErrorMessage,
   setIsPruned,
   setContextPercentage,

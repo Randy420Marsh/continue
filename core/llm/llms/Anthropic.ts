@@ -31,6 +31,7 @@ import { renderChatMessage, stripImages } from "../../util/messageContent.js";
 import { extractBase64FromDataUrl } from "../../util/url.js";
 import { DEFAULT_REASONING_TOKENS } from "../constants.js";
 import { BaseLLM } from "../index.js";
+import { ReasoningEffort, effortToBudgetTokens } from "../reasoning.js";
 
 class Anthropic extends BaseLLM {
   static providerName = "anthropic";
@@ -70,8 +71,16 @@ class Anthropic extends BaseLLM {
       thinking: options.reasoning
         ? {
             type: "enabled" as const,
-            budget_tokens:
-              options.reasoningBudgetTokens ?? DEFAULT_REASONING_TOKENS,
+            budget_tokens: (() => {
+              if (options.reasoningEffort) {
+                const tokens = effortToBudgetTokens(
+                  options.reasoningEffort as ReasoningEffort,
+                );
+                // -1 means "max" — fall back to a large but finite budget
+                return tokens === -1 ? 32000 : tokens;
+              }
+              return options.reasoningBudgetTokens ?? DEFAULT_REASONING_TOKENS;
+            })(),
           }
         : undefined,
       tool_choice: options.toolChoice

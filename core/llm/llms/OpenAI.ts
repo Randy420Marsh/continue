@@ -25,6 +25,7 @@ import {
   toChatBody,
   toResponsesInput,
 } from "../openaiTypeConverters.js";
+import { ReasoningEffort, effortToOpenAI } from "../reasoning.js";
 
 const NON_CHAT_MODELS = [
   "text-davinci-002",
@@ -331,7 +332,9 @@ class OpenAI extends BaseLLM {
       temperature: options.temperature ?? null,
       top_p: options.topP ?? null,
       reasoning: {
-        effort: "medium",
+        effort: options.reasoningEffort
+          ? effortToOpenAI(options.reasoningEffort as ReasoningEffort)
+          : "medium",
         summary: "auto",
       },
       include: ["reasoning.encrypted_content"],
@@ -436,6 +439,7 @@ class OpenAI extends BaseLLM {
 
   protected modifyChatBody(
     body: ChatCompletionCreateParams,
+    _options?: CompletionOptions,
   ): ChatCompletionCreateParams {
     body.stop = body.stop?.slice(0, this.getMaxStopWords());
 

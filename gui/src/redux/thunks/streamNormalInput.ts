@@ -37,18 +37,11 @@ import { evaluateToolPolicies } from "./evaluateToolPolicies";
 import { preprocessToolCalls } from "./preprocessToolCallArgs";
 import { streamResponseAfterToolCall } from "./streamResponseAfterToolCall";
 
-/**
- * Builds completion options with reasoning configuration based on session state and model capabilities.
- *
- * @param baseOptions - Base completion options to extend
- * @param hasReasoningEnabled - Whether reasoning is enabled in the session
- * @param model - The selected model with provider and completion options
- * @returns Completion options with reasoning configuration
- */
 function buildReasoningCompletionOptions(
   baseOptions: LLMFullCompletionOptions,
   hasReasoningEnabled: boolean | undefined,
   model: ModelDescription,
+  reasoningEffort?: "minimal" | "low" | "medium" | "high" | "max",
 ): LLMFullCompletionOptions {
   if (hasReasoningEnabled === undefined) {
     return baseOptions;
@@ -59,11 +52,14 @@ function buildReasoningCompletionOptions(
     reasoning: !!hasReasoningEnabled,
   };
 
-  // Add reasoning budget tokens if reasoning is enabled and provider supports it
-  if (hasReasoningEnabled && model.underlyingProviderName !== "ollama") {
-    // Ollama doesn't support limiting reasoning tokens at this point
-    reasoningOptions.reasoningBudgetTokens =
-      model.completionOptions?.reasoningBudgetTokens ?? 2048;
+  if (hasReasoningEnabled) {
+    if (reasoningEffort) {
+      reasoningOptions.reasoningEffort = reasoningEffort;
+    } else if (model.underlyingProviderName !== "ollama") {
+      // Fall back to explicit token budget from model config when no effort level set
+      reasoningOptions.reasoningBudgetTokens =
+        model.completionOptions?.reasoningBudgetTokens ?? 2048;
+    }
   }
 
   return reasoningOptions;
@@ -130,6 +126,7 @@ export const streamNormalInput = createAsyncThunk<
       completionOptions,
       state.session.hasReasoningEnabled,
       selectedChatModel,
+      state.session.reasoningEffort,
     );
 
     // Construct messages (excluding system message)

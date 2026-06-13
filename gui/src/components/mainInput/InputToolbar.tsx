@@ -14,7 +14,10 @@ import { IdeMessengerContext } from "../../context/IdeMessenger";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { selectUseActiveFile } from "../../redux/selectors";
 import { selectSelectedChatModel } from "../../redux/slices/configSlice";
-import { setHasReasoningEnabled } from "../../redux/slices/sessionSlice";
+import {
+  setHasReasoningEnabled,
+  setReasoningEffort,
+} from "../../redux/slices/sessionSlice";
 import { setReasoningSetting } from "../../redux/slices/uiSlice";
 import { exitEdit } from "../../redux/thunks/edit";
 import { getMetaKeyLabel, isMetaEquivalentKeyPressed } from "../../util";
@@ -56,6 +59,9 @@ function InputToolbar(props: InputToolbarProps) {
   const codeToEdit = useAppSelector((store) => store.editModeState.codeToEdit);
   const hasReasoningEnabled = useAppSelector(
     (store) => store.session.hasReasoningEnabled,
+  );
+  const reasoningEffort = useAppSelector(
+    (store) => store.session.reasoningEffort ?? "medium",
   );
   const isEnterDisabled =
     props.disabled || (isInEdit && codeToEdit.length === 0);
@@ -136,34 +142,64 @@ function InputToolbar(props: InputToolbarProps) {
               </ToolTip>
             )}
             {supportsReasoning && (
-              <HoverItem
-                onClick={() => {
-                  dispatch(setHasReasoningEnabled(!hasReasoningEnabled));
-                  if (defaultModel?.title) {
-                    dispatch(
-                      setReasoningSetting({
-                        modelTitle: defaultModel.title,
-                        enabled: !hasReasoningEnabled,
-                      }),
-                    );
-                  }
-                }}
-              >
-                <ToolTip
-                  place="top"
-                  content={
-                    hasReasoningEnabled
-                      ? "Disable model reasoning"
-                      : "Enable model reasoning"
-                  }
+              <div className="flex items-center gap-0.5">
+                <HoverItem
+                  onClick={() => {
+                    dispatch(setHasReasoningEnabled(!hasReasoningEnabled));
+                    if (defaultModel?.title) {
+                      dispatch(
+                        setReasoningSetting({
+                          modelTitle: defaultModel.title,
+                          enabled: !hasReasoningEnabled,
+                        }),
+                      );
+                    }
+                  }}
                 >
-                  {hasReasoningEnabled ? (
-                    <LightBulbIconSolid className="h-3 w-3 brightness-200 hover:brightness-150" />
-                  ) : (
-                    <LightBulbIconOutline className="h-3 w-3 hover:brightness-150" />
-                  )}
-                </ToolTip>
-              </HoverItem>
+                  <ToolTip
+                    place="top"
+                    content={
+                      hasReasoningEnabled
+                        ? `Reasoning on · ${reasoningEffort} — click to disable`
+                        : "Enable model reasoning"
+                    }
+                  >
+                    {hasReasoningEnabled ? (
+                      <LightBulbIconSolid className="h-3 w-3 brightness-200 hover:brightness-150" />
+                    ) : (
+                      <LightBulbIconOutline className="h-3 w-3 hover:brightness-150" />
+                    )}
+                  </ToolTip>
+                </HoverItem>
+                {hasReasoningEnabled && (
+                  <ToolTip place="top" content="Reasoning effort level">
+                    <select
+                      className="text-description cursor-pointer border-none bg-transparent outline-none"
+                      style={{ fontSize: "inherit" }}
+                      value={reasoningEffort}
+                      onChange={(e) => {
+                        dispatch(
+                          setReasoningEffort(
+                            e.target.value as
+                              | "minimal"
+                              | "low"
+                              | "medium"
+                              | "high"
+                              | "max",
+                          ),
+                        );
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <option value="minimal">minimal</option>
+                      <option value="low">low</option>
+                      <option value="medium">medium</option>
+                      <option value="high">high</option>
+                      <option value="max">max</option>
+                    </select>
+                  </ToolTip>
+                )}
+              </div>
             )}
           </div>
         </div>

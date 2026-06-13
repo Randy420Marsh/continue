@@ -965,6 +965,7 @@ export abstract class BaseLLM implements ILLM {
 
   protected modifyChatBody(
     body: ChatCompletionCreateParams,
+    options?: CompletionOptions,
   ): ChatCompletionCreateParams {
     return body;
   }
@@ -1192,7 +1193,7 @@ export abstract class BaseLLM implements ILLM {
             includeReasoningDetailsField: this.supportsReasoningDetailsField,
             includeReasoningContentField: this.supportsReasoningContentField,
           });
-          body = this.modifyChatBody(body);
+          body = this.modifyChatBody(body, completionOptions);
 
           if (logEnabled) {
             interaction?.logItem({

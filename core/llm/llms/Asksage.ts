@@ -26,7 +26,7 @@ interface AskSageCompletionOptions extends CompletionOptions {
   enabledMcpTools?: string[];
   toolsToExecute?: string[];
   askSageToolChoice?: AskSageToolChoice;
-  reasoningEffort?: "low" | "medium" | "high";
+  reasoningEffort?: "minimal" | "low" | "medium" | "high" | "max";
   deepAgentId?: number;
   streaming?: boolean;
   file?: unknown;
@@ -203,11 +203,13 @@ class Asksage extends BaseLLM {
         "You are an expert software developer. You give helpful and concise responses.",
       tools,
       tool_choice: toolChoice,
-      reasoning_effort: options.reasoningEffort as
-        | "low"
-        | "medium"
-        | "high"
-        | undefined,
+      reasoning_effort: (() => {
+        const e = options.reasoningEffort;
+        if (!e) return undefined;
+        if (e === "minimal") return "low";
+        if (e === "max") return "high";
+        return e as "low" | "medium" | "high";
+      })(),
       deep_agent_id: options.deepAgentId as number | undefined,
       streaming: options.streaming as boolean | undefined,
       file: options.file,
