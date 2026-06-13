@@ -1,1 +1,2 @@
+export PATH="$(ls -d /home/john/.nvm/versions/node/v* | sort -V | tail -1)/bin:$PATH"
 npx lint-staged
